@@ -1,91 +1,72 @@
-// Step 1: Define the async function
-async function fetchUserData() {
-    // Step 2: Define the API URL
-    const apiUrl = 'https://jsonplaceholder.typicode.com/users';
-
-    // Step 3: Select the data container
-    const dataContainer = document.getElementById('api-data');
-
-    try {
-        // Step 4: Fetch the data
-        const response = await fetch(apiUrl);
-        const users = await response.json();
-
-        // Step 5: Clear loading message
-        dataContainer.innerHTML = '';
-
-        // Step 6: Create a <ul> element
-        const userList = document.createElement('ul');
-
-        // Step 7: Loop through the users and create list items
-        users.forEach(user => {
-            const listItem = document.createElement('li');
-            listItem.textContent = user.name;
-            userList.appendChild(listItem);
-        });
-
-        // Step 8: Append the list to the container
-        dataContainer.appendChild(userList);
-    } catch (error) {
-        // Step 9: Handle any errors
-        dataContainer.innerHTML = '';
-        dataContainer.textContent = 'Failed to load user data.';
-    }
-}
-
-// Step 10: Run fetchUserData on DOMContentLoaded
-document.addEventListener('DOMContentLoaded', fetchUserData);
-
+ // Wait until the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
+    const addButton = document.getElementById('add-task-btn');
     const taskInput = document.getElementById('task-input');
-    const addButton = document.getElementById('add-task');
     const taskList = document.getElementById('task-list');
 
-    // Load tasks on page load
+    // Load tasks from local storage
     loadTasks();
 
-    // Add task on button click
+    // Add Task on button click
     addButton.addEventListener('click', () => {
-        const taskText = taskInput.value.trim();
-        if (taskText !== '') {
-            addTask(taskText);
-            taskInput.value = '';
+        addTask(taskInput.value.trim());
+    });
+
+    // Add Task on pressing Enter
+    taskInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+            addTask(taskInput.value.trim());
         }
     });
 
-    // Function to load tasks from Local Storage
-    function loadTasks() {
-        const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-        storedTasks.forEach(taskText => addTask(taskText, false)); // Don't save again during load
-    }
-
-    // Function to add a task (and optionally save to localStorage)
+    // Function to add a task
     function addTask(taskText, save = true) {
-        const listItem = document.createElement('li');
-        listItem.textContent = taskText;
+        if (taskText === '') {
+            alert('Please enter a task.');
+            return;
+        }
 
+        // Create <li> element
+        const li = document.createElement('li');
+        li.textContent = taskText;
+
+        // Create Remove button
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Remove';
-        removeBtn.style.marginLeft = '10px';
-        removeBtn.addEventListener('click', () => {
-            taskList.removeChild(listItem);
+        removeBtn.className = 'remove-btn';
+
+        // Remove task from DOM and storage
+        removeBtn.onclick = () => {
+            li.remove();
             removeTaskFromStorage(taskText);
-        });
+        };
 
-        listItem.appendChild(removeBtn);
-        taskList.appendChild(listItem);
+        // Append remove button and list item
+        li.appendChild(removeBtn);
+        taskList.appendChild(li);
 
+        // Save to local storage if needed
         if (save) {
-            const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-            storedTasks.push(taskText);
-            localStorage.setItem('tasks', JSON.stringify(storedTasks));
+            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            tasks.push(taskText);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
         }
+
+        // Clear input field
+        taskInput.value = '';
     }
 
-    // Function to remove a task from Local Storage
+    // Load tasks from local storage
+    function loadTasks() {
+        const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        storedTasks.forEach(taskText => addTask(taskText, false));
+    }
+
+    // Remove a task from local storage
     function removeTaskFromStorage(taskText) {
-        let storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-        storedTasks = storedTasks.filter(task => task !== taskText);
-        localStorage.setItem('tasks', JSON.stringify(storedTasks));
+        let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        tasks = tasks.filter(task => task !== taskText);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 });
+
